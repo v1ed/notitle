@@ -92,10 +92,10 @@ def generate_level(level):
 
 floor_images = {'floor': load_image('floor.png')}
 walls_images = {'wall': load_image('box.png')}
-player_forward = load_image('player_forward.png')
-player_backward = load_image('player_backward.png')
-player_left = load_image('player_left.png')
-player_right = load_image('player_right.png')
+player_forward = load_image('player_forward.png', -1)
+player_backward = load_image('player_backward.png', -1)
+player_left = load_image('player_left.png', -1)
+player_right = load_image('player_right.png', -1)
 
 tile_width = tile_height = 64
 
