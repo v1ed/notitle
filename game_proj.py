@@ -57,23 +57,29 @@ def start_screen():
 
 def Mission():
     active = True
-    text = ['Здесь должен быть текст миссии']
+    text = ['Здесь должен быть текст миссии',
+            "И еще текст"]
     screen.fill((255, 255, 255))
     font = pygame.font.Font(None, 30)
     text_coord = 50
-    for line in text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-    while True:
-        for event in pygame.event.get():
-            if (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN) and active:
-                active = False
-                return  # начинаем игру
+    if active:
+        for line in text:
+            string_rendered = font.render(line, 1, pygame.Color('black'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 10
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
+                    active = False
+                    return  # начинаем игру
+            pygame.display.flip()
+            clock.tick(FPS)
 
 def load_level(filename):
     filename = "data/" + filename
@@ -169,7 +175,7 @@ class Player(pygame.sprite.Sprite):
             self.image = player_backward
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.y += 10
-        if pygame.sprite.spritecollideany(self, trig_group):
+        if pygame.sprite.spritecollideany(self, trig_group) and keys[pygame.K_e] == 1:
             Mission()
 
 
