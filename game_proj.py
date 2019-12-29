@@ -55,6 +55,26 @@ def start_screen():
         pygame.display.flip()
         clock.tick(FPS)
 
+def Mission():
+    active = True
+    text = ['Здесь должен быть текст миссии']
+    screen.fill((255, 255, 255))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN) and active:
+                active = False
+                return  # начинаем игру
+
 def load_level(filename):
     filename = "data/" + filename
     # читаем уровень, убирая символы перевода строки
@@ -65,7 +85,7 @@ def load_level(filename):
     max_width = max(map(len, level_map))
 
     # дополняем каждую строку пустыми клетками ('.')
-    return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+    return list(map(lambda x: x.ljust(max_width, '#'), level_map))
 
 # основной персонаж
 player = None
@@ -74,6 +94,7 @@ player = None
 all_sprites = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
+trig_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
 def generate_level(level):
@@ -87,10 +108,13 @@ def generate_level(level):
             elif level[y][x] == '@':
                 Floor('floor', x, y)
                 new_player = Player(x, y)
+            elif level[y][x] == '/':
+                Trigger('trigger', x, y)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
 floor_images = {'floor': load_image('floor.png')}
+trig_images = {'trigger': load_image('trigger.png')}
 walls_images = {'wall': load_image('box.png')}
 player_forward = load_image('player_forward.png', -1)
 player_backward = load_image('player_backward.png', -1)
@@ -109,6 +133,12 @@ class Floor(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(floor_group, all_sprites)
         self.image = floor_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+class Trigger(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(trig_group, all_sprites)
+        self.image = trig_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
@@ -139,6 +169,8 @@ class Player(pygame.sprite.Sprite):
             self.image = player_backward
             if pygame.sprite.spritecollideany(self, walls_group):
                 self.rect.y += 10
+        if pygame.sprite.spritecollideany(self, trig_group):
+            Mission()
 
 
 class Camera:
@@ -173,7 +205,7 @@ while running:
     # обновляем положение всех спрайтов
     for sprite in all_sprites:
         camera.apply(sprite)
-    screen.fill((255, 255, 255))
+    screen.fill((25, 25, 25))
     all_sprites.draw(screen)
     player_group.draw(screen)
     pygame.display.flip()
