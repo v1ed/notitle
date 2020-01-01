@@ -11,6 +11,8 @@ screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 # filename = input()
 MISSON_ACTIVE = False
+EXP = 0
+SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
 
 def load_image(name, colorkey=None):
@@ -63,7 +65,7 @@ def Mission():
         return
     else:
         text = ['Здесь должен быть текст миссии',
-                "И еще текст",
+                "Награда: 100 Exp",
                 "SPACE - принять миссию", "TAB - отклонить миссию"]
         screen.fill((255, 255, 255))
         font = pygame.font.Font(None, 30)
@@ -84,14 +86,15 @@ def Mission():
                     if event.key == pygame.K_SPACE:
                         print('Mission active')
                         MISSON_ACTIVE = True
-                        return False
+                        return
                     elif event.key == pygame.K_TAB:
-                        return True
+                        return
             pygame.display.flip()
             clock.tick(FPS)
 
 def endMission():
     global MISSON_ACTIVE
+    global EXP
     if not MISSON_ACTIVE:
         return
     else:
@@ -116,10 +119,12 @@ def endMission():
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         print('Mission completed')
+                        EXP += 100
                         MISSON_ACTIVE = False
                         return
             pygame.display.flip()
             clock.tick(FPS)
+
 def Pause():
     text = ['Игра на паузе', 'Нажмите любую клавишу, чтобы убрать паузу']
     screen.fill((255, 255, 255))
@@ -137,11 +142,11 @@ def Pause():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
-                return
+            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                if event.key != pygame.K_ESCAPE:
+                    return
         pygame.display.flip()
         clock.tick(FPS)
-
 
 def load_level(filename):
     filename = "data/" + filename
@@ -149,6 +154,42 @@ def load_level(filename):
         level_map = [line.strip() for line in mapFile]
     max_width = max(map(len, level_map))
     return list(map(lambda x: x.ljust(max_width, '#'), level_map))
+
+def experience():
+    global EXP
+    font = pygame.font.Font(None, 40)
+    exp_render = font.render('Exp: ' + str(EXP), 1, (100, 255, 0))
+    screen.blit(exp_render, (20, 20))
+
+def upgrades():
+    global EXP
+    global SPEED_UP
+    global MOVE_SPEED
+    font = pygame.font.Font(None, 40)
+    upgrades_render = font.render('1. SPEED UPGRADE' + str(100 * (SPEED_UP * 0.5)), 1, (255, 255, 255))
+    text_x = WIDTH // 2 - upgrades_render.get_width() // 2
+    text_y = HEIGHT // 2 - upgrades_render.get_height() // 2
+    text_w = upgrades_render.get_width()
+    text_h = upgrades_render.get_height()
+    screen.blit(upgrades_render, (text_x, text_y))
+    pygame.draw.rect(screen, (255, 255, 255), (text_x - 10, text_y - 10, text_w + 20, text_h + 20), 1)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1 and EXP >= 100 * (SPEED_UP * 0.5):
+                    print('Upgrade bought')
+                    SPEED_UP += 1
+                    MOVE_SPEED += 5
+                    EXP -= 100 * (SPEED_UP * 0.5)
+                elif event.key == pygame.K_ESCAPE:
+                    return
+        pygame.display.flip()
+        clock.tick(FPS)
+
+
+
 
 # основной персонаж
 player = None
@@ -248,6 +289,8 @@ class Player(pygame.sprite.Sprite):
             endMission()
         if keys[pygame.K_ESCAPE] == 1:
             Pause()
+        if keys[pygame.K_e] == 1:
+            upgrades()
 
 class Camera:
     # зададим начальный сдвиг камеры
@@ -276,12 +319,12 @@ while running:
         if event.type == pygame.KEYDOWN:
             player_group.update(pygame.key.get_pressed())
     # изменяем ракурс камеры
-    camera.update(player);
+    camera.update(player)
     # обновляем положение всех спрайтов
     for sprite in all_sprites:
         camera.apply(sprite)
     screen.fill((25, 25, 25))
     all_sprites.draw(screen)
     player_group.draw(screen)
+    experience()
     pygame.display.flip()
-
