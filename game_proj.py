@@ -138,21 +138,16 @@ def Pause():
             if event.type == pygame.QUIT:
                 terminate()
             elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
-                return  # начинаем игру
+                return
         pygame.display.flip()
         clock.tick(FPS)
 
 
 def load_level(filename):
     filename = "data/" + filename
-    # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
-
-    # и подсчитываем максимальную длину
     max_width = max(map(len, level_map))
-
-    # дополняем каждую строку пустыми клетками ('.')
     return list(map(lambda x: x.ljust(max_width, '#'), level_map))
 
 # основной персонаж
@@ -181,7 +176,6 @@ def generate_level(level):
                 StartMissionTrigger('start_mission_trigger', x, y)
             elif level[y][x] == '-':
                 EndMissionTrigger('end_mission_trigger', x, y)
-    # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
 floor_images = {'floor': load_image('floor.png')}
