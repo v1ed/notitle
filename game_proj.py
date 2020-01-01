@@ -6,9 +6,11 @@ import sys
 FPS = 60
 pygame.init()
 size = WIDTH, HEIGHT = 550, 550
+MOVE_SPEED = 10
 screen = pygame.display.set_mode(size)
 clock = pygame.time.Clock()
 # filename = input()
+MISSON_ACTIVE = False
 pygame.key.set_repeat(1, 50)
 
 def load_image(name, colorkey=None):
@@ -56,13 +58,16 @@ def start_screen():
         clock.tick(FPS)
 
 def Mission():
-    active = True
-    text = ['Здесь должен быть текст миссии',
-            "И еще текст"]
-    screen.fill((255, 255, 255))
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    if active:
+    global MISSON_ACTIVE
+    if MISSON_ACTIVE:
+        return
+    else:
+        text = ['Здесь должен быть текст миссии',
+                "И еще текст",
+                "SPACE - принять миссию", "TAB - отклонить миссию"]
+        screen.fill((255, 255, 255))
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
         for line in text:
             string_rendered = font.render(line, 1, pygame.Color('black'))
             intro_rect = string_rendered.get_rect()
@@ -75,11 +80,68 @@ def Mission():
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-                elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
-                    active = False
-                    return  # начинаем игру
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        print('Mission active')
+                        MISSON_ACTIVE = True
+                        return False
+                    elif event.key == pygame.K_TAB:
+                        return True
             pygame.display.flip()
             clock.tick(FPS)
+
+def endMission():
+    global MISSON_ACTIVE
+    if not MISSON_ACTIVE:
+        return
+    else:
+        text = ['Здесь должен быть текст миссии',
+                "Миссия завершена",
+                "SPACE - закрыть экран завершения миссии"]
+        screen.fill((255, 255, 255))
+        font = pygame.font.Font(None, 30)
+        text_coord = 50
+        for line in text:
+            string_rendered = font.render(line, 1, pygame.Color('black'))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 10
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        print('Mission completed')
+                        MISSON_ACTIVE = False
+                        return
+            pygame.display.flip()
+            clock.tick(FPS)
+def Pause():
+    text = ['Игра на паузе', 'Нажмите любую клавишу, чтобы убрать паузу']
+    screen.fill((255, 255, 255))
+    font = pygame.font.Font(None, 30)
+    text_coord = 50
+    for line in text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 10
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                terminate()
+            elif (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN):
+                return  # начинаем игру
+        pygame.display.flip()
+        clock.tick(FPS)
+
 
 def load_level(filename):
     filename = "data/" + filename
@@ -100,7 +162,8 @@ player = None
 all_sprites = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
-trig_group = pygame.sprite.Group()
+startMisTrig_group = pygame.sprite.Group()
+endMisTrig_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
 
 def generate_level(level):
@@ -115,12 +178,15 @@ def generate_level(level):
                 Floor('floor', x, y)
                 new_player = Player(x, y)
             elif level[y][x] == '/':
-                Trigger('trigger', x, y)
+                StartMissionTrigger('start_mission_trigger', x, y)
+            elif level[y][x] == '-':
+                EndMissionTrigger('end_mission_trigger', x, y)
     # вернем игрока, а также размер поля в клетках
     return new_player, x, y
 
 floor_images = {'floor': load_image('floor.png')}
-trig_images = {'trigger': load_image('trigger.png')}
+startMisTrig_images = {'start_mission_trigger': load_image('trigger.png')}
+endMisTrig_images = {'end_mission_trigger': load_image('trigger2.png')}
 walls_images = {'wall': load_image('box.png')}
 player_forward = load_image('player_forward.png', -1)
 player_backward = load_image('player_backward.png', -1)
@@ -141,10 +207,16 @@ class Floor(pygame.sprite.Sprite):
         self.image = floor_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
-class Trigger(pygame.sprite.Sprite):
+class StartMissionTrigger(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
-        super().__init__(trig_group, all_sprites)
-        self.image = trig_images[tile_type]
+        super().__init__(startMisTrig_group, all_sprites)
+        self.image = startMisTrig_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+class EndMissionTrigger(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(endMisTrig_group, all_sprites)
+        self.image = endMisTrig_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
@@ -155,29 +227,33 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self, keys):
+        global MISSON_ACTIVE
         if keys[pygame.K_LEFT] == 1:
-            self.rect.x -= 10
+            self.rect.x -= MOVE_SPEED
             self.image = player_left
             if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.x += 10
+                self.rect.x += MOVE_SPEED
         if keys[pygame.K_RIGHT] == 1:
-            self.rect.x += 10
+            self.rect.x += MOVE_SPEED
             self.image = player_right
             if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.x -= 10
+                self.rect.x -= MOVE_SPEED
         if keys[pygame.K_DOWN] == 1:
-            self.rect.y += 10
+            self.rect.y += MOVE_SPEED
             self.image = player_forward
             if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.y -= 10
+                self.rect.y -= MOVE_SPEED
         if keys[pygame.K_UP] == 1:
-            self.rect.y -= 10
+            self.rect.y -= MOVE_SPEED
             self.image = player_backward
             if pygame.sprite.spritecollideany(self, walls_group):
-                self.rect.y += 10
-        if pygame.sprite.spritecollideany(self, trig_group) and keys[pygame.K_e] == 1:
+                self.rect.y += MOVE_SPEED
+        if pygame.sprite.spritecollideany(self, startMisTrig_group) and not MISSON_ACTIVE:
             Mission()
-
+        if pygame.sprite.spritecollideany(self, endMisTrig_group) and MISSON_ACTIVE:
+            endMission()
+        if keys[pygame.K_ESCAPE] == 1:
+            Pause()
 
 class Camera:
     # зададим начальный сдвиг камеры
@@ -194,7 +270,6 @@ class Camera:
     def update(self, target):
         self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
         self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
-        print(self.dx, self.dy)
 
 running = True
 start_screen()
