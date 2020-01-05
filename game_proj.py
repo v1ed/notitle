@@ -30,11 +30,27 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+def saveGame():
+    global EXP, SPEED_UP, MOVE_SPEED
+    save = open("data/save.txt", "w")
+    save.write(str(int(EXP)) + "\n")
+    save.write(str(int(SPEED_UP)) + "\n")
+    save.write(str(int(MOVE_SPEED)))
+    save.close()
+
+def loadGame():
+    global EXP, SPEED_UP, MOVE_SPEED
+    save = open("data/save.txt", "r")
+    read = str(save.read()).split('\n')
+    EXP = int(read[0])
+    SPEED_UP = int(read[1])
+    MOVE_SPEED = int(read[2])
+    save.close()
+
 def start_screen():
-    intro_text = ["ЗАСТАВКА", "",
-                  "Правила игры",
-                  "Если в правилах несколько строк,",
-                  "приходится выводить их построчно"]
+    intro_text = ["notitle", "",
+                  "Новая игра",
+                  "Загрузить игру"]
 
     screen.fill((255, 255, 255))
     # fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
@@ -310,12 +326,14 @@ class Camera:
 
 running = True
 start_screen()
+loadGame()
 player, level_x, level_y = generate_level(load_level('testlevel.txt'))
 camera = Camera()
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+            saveGame()
         if event.type == pygame.KEYDOWN:
             player_group.update(pygame.key.get_pressed())
     # изменяем ракурс камеры
