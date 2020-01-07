@@ -64,38 +64,22 @@ def new_game():
     HP = 100
 
 def start_screen():
-    intro_text = ["", "",
-                  "Новая игра",
-                  "Загрузить игру"]
-
     screen.fill((255, 255, 255))
-    # fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
-    # screen.blit(fon, (0, 0))
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-    exit_font = pygame.font.Font(None, 50)
-    exit_render = exit_font.render('QUIT', 1, (255, 0, 0))
-    screen.blit(exit_render, (10, 1000))
+    bg = pygame.transform.scale(load_image('mainmenu.png'), (WIDTH, HEIGHT))
+    screen.blit(bg, (0, 0))
+
     while True:
         mp = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 120) and (mp[1] >= 120 and mp[1] <= 135):
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 745 and mp[0] <= 1180) and (mp[1] >= 490 and mp[1] <= 540):
                 new_game()
                 return
-            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 160) and (mp[1] >= 155 and mp[1] <= 170):
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 745 and mp[0] <= 1180) and (mp[1] >= 555 and mp[1] <= 600):
                 loadGame()
                 return
-            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 95) and (mp[1] >= 1000 and mp[1] <= 1030):
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 870 and mp[0] <= 1050) and (mp[1] >= 675 and mp[1] <= 710):
                 terminate()
         print(mp)
         pygame.display.flip()
@@ -106,31 +90,22 @@ def Mission():
     if MISSON_ACTIVE:
         return
     else:
-        text = ['Здесь должен быть текст миссии',
-                "Награда: 100 Exp",
-                "SPACE - принять миссию", "TAB - отклонить миссию"]
         screen.fill((255, 255, 255))
-        font = pygame.font.Font(None, 30)
-        text_coord = 50
-        for line in text:
-            string_rendered = font.render(line, 1, pygame.Color('black'))
-            intro_rect = string_rendered.get_rect()
-            text_coord += 10
-            intro_rect.top = text_coord
-            intro_rect.x = 10
-            text_coord += intro_rect.height
-            screen.blit(string_rendered, intro_rect)
+        bg = pygame.transform.scale(load_image('mission_start.png'), (WIDTH, HEIGHT))
+        screen.blit(bg, (0, 0))
         while True:
+            mp = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if (mp[0] >= 160 and mp[0] <= 640) and (mp[1] >= 960 and mp[1] <= 1030):
                         print('Mission active')
                         MISSON_ACTIVE = True
                         return
-                    elif event.key == pygame.K_TAB:
+                    elif (mp[0] >= 1255 and mp[0] <= 1575) and (mp[1] >= 960 and mp[1] <= 1030):
                         return False
+            print(mp)
             pygame.display.flip()
             clock.tick(FPS)
 
@@ -140,59 +115,37 @@ def endMission():
     if not MISSON_ACTIVE:
         return
     else:
-        text = ['Здесь должен быть текст миссии',
-                "Миссия завершена",
-                "SPACE - закрыть экран завершения миссии"]
         screen.fill((255, 255, 255))
-        font = pygame.font.Font(None, 30)
-        text_coord = 50
-        for line in text:
-            string_rendered = font.render(line, 1, pygame.Color('black'))
-            intro_rect = string_rendered.get_rect()
-            text_coord += 10
-            intro_rect.top = text_coord
-            intro_rect.x = 10
-            text_coord += intro_rect.height
-            screen.blit(string_rendered, intro_rect)
+        bg = pygame.transform.scale(load_image('mission_end.png'), (WIDTH, HEIGHT))
+        screen.blit(bg, (0, 0))
         while True:
+            mp = pygame.mouse.get_pos()
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     terminate()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        print('Mission completed')
-                        EXP += 100
-                        MISSON_ACTIVE = False
-                        return
+                elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 720 and mp[0] <= 1200) and (mp[1] >= 810 and mp[1] <= 880):
+                    print('Mission completed')
+                    EXP += 100
+                    MISSON_ACTIVE = False
+                    return
+                print(mp)
             pygame.display.flip()
             clock.tick(FPS)
 
 def Pause():
-    text = ['Игра на паузе', 'Нажмите любую клавишу, чтобы убрать паузу']
     screen.fill((255, 255, 255))
-    font = pygame.font.Font(None, 30)
-    text_coord = 50
-    for line in text:
-        string_rendered = font.render(line, 1, pygame.Color('black'))
-        intro_rect = string_rendered.get_rect()
-        text_coord += 10
-        intro_rect.top = text_coord
-        intro_rect.x = 10
-        text_coord += intro_rect.height
-        screen.blit(string_rendered, intro_rect)
-    exit_font = pygame.font.Font(None, 50)
-    exit_render = exit_font.render('QUIT', 1, (255, 0, 0))
-    screen.blit(exit_render, (10, 1000))
+    bg = pygame.transform.scale(load_image('pause.png'), (WIDTH, HEIGHT))
+    screen.blit(bg, (0, 0))
     while True:
         mp = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN:
-                if event.key != pygame.K_ESCAPE:
-                    return
-            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 95) and (mp[1] >= 1000 and mp[1] <= 1030):
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 870 and mp[0] <= 1050) and (mp[1] >= 675 and mp[1] <= 710):
                 terminate()
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 640 and mp[0] <= 1265) and (mp[1] >= 510 and mp[1] <= 575):
+                return
+        print(mp)
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -263,6 +216,19 @@ def upgrades():
                     return
         pygame.display.flip()
         clock.tick(FPS)
+
+def cheat():
+    global EXP, HP
+    EXP += 500
+    HP = 100
+    font = pygame.font.Font(None, 40)
+    cheat_render = font.render('cheat activated!', 1, (0, 255, 0))
+    screen.blit(cheat_render, (10, 1050))
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                return
+        pygame.display.flip()
 
 player = None
 
@@ -380,6 +346,9 @@ class Player(pygame.sprite.Sprite):
             if HP <= 0:
                 if DeadScreen():
                     start_screen()
+        if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
+            print('activated!')
+            cheat()
 
 
 class Menu:
@@ -410,6 +379,10 @@ while running:
             saveGame()
         if event.type == pygame.KEYDOWN:
             player_group.update(pygame.key.get_pressed())
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_b and event.key == pygame.K_a and event.key == pygame.K_d:
+                print('nice')
+                cheat()
     camera.update(player)
     for sprite in all_sprites:
         camera.apply(sprite)
