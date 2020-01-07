@@ -3,14 +3,15 @@ import os
 import sys
 import time
 
-FPS = 30
+FPS = 60
 pygame.init()
-size = WIDTH, HEIGHT = 550, 550
+displayInfo = pygame.display.Info()
+size = WIDTH, HEIGHT = displayInfo.current_w, displayInfo.current_h
 MOVE_SPEED = 10
-screen = pygame.display.set_mode(size)
+screen = pygame.display.set_mode(size, pygame.FULLSCREEN)
 clock = pygame.time.Clock()
 MISSON_ACTIVE = False
-HP = 5
+HP = 100
 EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
@@ -32,28 +33,38 @@ def load_image(name, colorkey=None):
     return image
 
 def terminate():
+    saveGame()
     pygame.quit()
     sys.exit()
 
 def saveGame():
-    global EXP, SPEED_UP, MOVE_SPEED
+    global EXP, SPEED_UP, MOVE_SPEED, HP
     save = open("data/save.txt", "w")
     save.write(str(int(EXP)) + "\n")
     save.write(str(int(SPEED_UP)) + "\n")
-    save.write(str(int(MOVE_SPEED)))
+    save.write(str(int(MOVE_SPEED)) + "\n")
+    save.write(str(int(HP)))
     save.close()
 
 def loadGame():
-    global EXP, SPEED_UP, MOVE_SPEED
+    global EXP, SPEED_UP, MOVE_SPEED, HP
     save = open("data/save.txt", "r")
     read = str(save.read()).split('\n')
     EXP = int(read[0])
     SPEED_UP = int(read[1])
     MOVE_SPEED = int(read[2])
+    HP = int(read[3])
     save.close()
 
+def new_game():
+    global EXP, SPEED_UP, MOVE_SPEED, HP
+    EXP = 0
+    SPEED_UP = 1
+    MOVE_SPEED = 10
+    HP = 100
+
 def start_screen():
-    intro_text = ["notitle", "",
+    intro_text = ["", "",
                   "Новая игра",
                   "Загрузить игру"]
 
@@ -70,13 +81,23 @@ def start_screen():
         intro_rect.x = 10
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
-
+    exit_font = pygame.font.Font(None, 50)
+    exit_render = exit_font.render('QUIT', 1, (255, 0, 0))
+    screen.blit(exit_render, (10, 1000))
     while True:
+        mp = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 120) and (mp[1] >= 120 and mp[1] <= 135):
+                new_game()
                 return
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 160) and (mp[1] >= 155 and mp[1] <= 170):
+                loadGame()
+                return
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 95) and (mp[1] >= 1000 and mp[1] <= 1030):
+                terminate()
+        print(mp)
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -159,13 +180,19 @@ def Pause():
         intro_rect.x = 10
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+    exit_font = pygame.font.Font(None, 50)
+    exit_render = exit_font.render('QUIT', 1, (255, 0, 0))
+    screen.blit(exit_render, (10, 1000))
     while True:
+        mp = pygame.mouse.get_pos()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            elif event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key != pygame.K_ESCAPE:
                     return
+            elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 10 and mp[0] <= 95) and (mp[1] >= 1000 and mp[1] <= 1030):
+                terminate()
         pygame.display.flip()
         clock.tick(FPS)
 
@@ -197,12 +224,8 @@ def DeadScreen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
-            # elif event.type == pygame.KEYDOWN:
-            #     if event.key == pygame.K_ESCAPE:
-            #         # start_screen()
-            #         loadGame()
-            #         # player, level_x, level_y = generate_level(load_level('testlevel.txt'))
-            #         return
+            elif event.type == pygame.KEYDOWN:
+                return True
         screen.blit(text_render, (text_x, text_y))
         pygame.display.flip()
 
@@ -212,7 +235,7 @@ def upgrades():
     global MOVE_SPEED
     upgrades = ['1. SPEED UPGRADE - ' + str(int(100 * (SPEED_UP * 0.5))) + 'EXP', '2. HEALTH UPGRADE -']
     font = pygame.font.Font(None, 40)
-    pygame.draw.rect(screen, (50, 50, 75), (50, 241, 450, 68), 0)
+    # pygame.draw.rect(screen, (50, 50, 75), (50, 241, 450, 68), 0)
     upgrades_render = font.render('1. SPEED UPGRADE - ' + str(int(100 * (SPEED_UP * 0.5))) + 'EXP', 1, (255, 255, 255))
     cost_render = font.render(str(100 * (SPEED_UP * 0.5)), 1, (255, 255, 255))
     text_x = WIDTH // 2 - upgrades_render.get_width() // 2
@@ -221,7 +244,8 @@ def upgrades():
     text_h = upgrades_render.get_height()
     print(text_x, text_y, text_h, text_w)
     screen.blit(upgrades_render, (text_x, text_y))
-    # pygame.draw.rect(screen, (255, 255, 255), (text_x - 10, text_y - 10, text_w + 20, text_h + 20), 1)
+    pygame.draw.rect(screen, (50, 50, 75), (text_x - 10, text_y - 10, text_w + 20, text_h + 20), 0)
+    screen.blit(upgrades_render, (text_x, text_y))
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -354,8 +378,12 @@ class Player(pygame.sprite.Sprite):
             HP -= 1
             # pygame.time.set_timer(pygame.sprite.spritecollideany(self, damage_group), 1000)
             if HP <= 0:
-                DeadScreen()
+                if DeadScreen():
+                    start_screen()
 
+
+class Menu:
+    pass
 
 
 class Camera:
@@ -373,7 +401,6 @@ class Camera:
 
 running = True
 start_screen()
-loadGame()
 player, level_x, level_y = generate_level(load_level('testlevel.txt'))
 camera = Camera()
 while running:
