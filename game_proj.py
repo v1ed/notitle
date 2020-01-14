@@ -16,6 +16,7 @@ EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
 is_cancel = False
+missions = 0
 # def wait(secs):
 #     while time.sleep(secs):
 #         return False
@@ -115,6 +116,7 @@ def Mission():
 def endMission():
     global MISSON_ACTIVE
     global EXP
+    global missions
     if not MISSON_ACTIVE:
         return
     else:
@@ -132,6 +134,7 @@ def endMission():
                     MISSON_ACTIVE = False
                     return
                 print(mp)
+            missions += 1
             pygame.display.flip()
             clock.tick(FPS)
 
@@ -234,11 +237,13 @@ def cheat():
                 return
         pygame.display.flip()
 
+
 player = None
 
 all_sprites = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
+door_group = pygame.sprite.Group()
 damage_group = pygame.sprite.Group()
 startMisTrig_group = pygame.sprite.Group()
 endMisTrig_group = pygame.sprite.Group()
@@ -261,9 +266,13 @@ def generate_level(level):
                 EndMissionTrigger('end_mission_trigger', x, y)
             elif level[y][x] == 'x':
                 Floor('lava', x, y)
+            elif level[y][x] == 'd':
+                Door('door', x, y)
     return new_player, x, y
 
+
 floor_images = {'floor': load_image('floor.png'), 'lava' : load_image('lava.png')}
+door_images = {'door': load_image('Door.png')}
 startMisTrig_images = {'start_mission_trigger': load_image('trigger.png')}
 endMisTrig_images = {'end_mission_trigger': load_image('trigger2.png')}
 walls_images = {'wall': load_image('box.png')}
@@ -274,11 +283,13 @@ player_right = load_image('player_right.png', -1)
 
 tile_width = tile_height = 64
 
+
 class Walls(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(walls_group, all_sprites)
         self.image = walls_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
 
 class Floor(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
@@ -291,16 +302,25 @@ class Floor(pygame.sprite.Sprite):
             self.image = floor_images[tile_type]
             self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
+
 class StartMissionTrigger(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(startMisTrig_group, all_sprites)
         self.image = startMisTrig_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
+
 class EndMissionTrigger(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(endMisTrig_group, all_sprites)
         self.image = endMisTrig_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Door(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(door_group, all_sprites)
+        self.image = door_images[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
@@ -317,22 +337,22 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_LEFT] == 1:
             self.rect.x -= MOVE_SPEED
             self.image = player_left
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or pygame.sprite.spritecollideany(self, door_group):
                 self.rect.x += MOVE_SPEED
         if keys[pygame.K_RIGHT] == 1:
             self.rect.x += MOVE_SPEED
             self.image = player_right
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or pygame.sprite.spritecollideany(self, door_group):
                 self.rect.x -= MOVE_SPEED
         if keys[pygame.K_DOWN] == 1:
             self.rect.y += MOVE_SPEED
             self.image = player_forward
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or pygame.sprite.spritecollideany(self, door_group):
                 self.rect.y -= MOVE_SPEED
         if keys[pygame.K_UP] == 1:
             self.rect.y -= MOVE_SPEED
             self.image = player_backward
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or pygame.sprite.spritecollideany(self, door_group):
                 self.rect.y += MOVE_SPEED
         if pygame.sprite.spritecollideany(self, startMisTrig_group) and not MISSON_ACTIVE:
             if not Mission():
