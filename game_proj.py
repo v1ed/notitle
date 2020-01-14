@@ -15,7 +15,7 @@ HP = 100
 EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
-
+is_cancel = False
 # def wait(secs):
 #     while time.sleep(secs):
 #         return False
@@ -86,28 +86,31 @@ def start_screen():
         clock.tick(FPS)
 
 def Mission():
-    global MISSON_ACTIVE
-    if MISSON_ACTIVE:
-        return
-    else:
-        screen.fill((255, 255, 255))
-        bg = pygame.transform.scale(load_image('mission_start.png'), (WIDTH, HEIGHT))
-        screen.blit(bg, (0, 0))
-        while True:
-            mp = pygame.mouse.get_pos()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    terminate()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if (mp[0] >= 160 and mp[0] <= 640) and (mp[1] >= 960 and mp[1] <= 1030):
-                        print('Mission active')
-                        MISSON_ACTIVE = True
-                        return
-                    elif (mp[0] >= 1255 and mp[0] <= 1575) and (mp[1] >= 960 and mp[1] <= 1030):
-                        return False
-            print(mp)
-            pygame.display.flip()
-            clock.tick(FPS)
+    global is_cancel
+    if is_cancel == False:
+        global MISSON_ACTIVE
+        if MISSON_ACTIVE:
+            return
+        else:
+            screen.fill((255, 255, 255))
+            bg = pygame.transform.scale(load_image('mission_start.png'), (WIDTH, HEIGHT))
+            screen.blit(bg, (0, 0))
+            while True:
+                mp = pygame.mouse.get_pos()
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        terminate()
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        if (mp[0] >= 160 and mp[0] <= 640) and (mp[1] >= 960 and mp[1] <= 1030):
+                            print('Mission active')
+                            MISSON_ACTIVE = True
+                            return
+                        elif (mp[0] >= 1255 and mp[0] <= 1575) and (mp[1] >= 960 and mp[1] <= 1030):
+                            is_cancel = True
+                            return False
+                print(mp)
+                pygame.display.flip()
+                clock.tick(FPS)
 
 def endMission():
     global MISSON_ACTIVE
@@ -131,6 +134,7 @@ def endMission():
                 print(mp)
             pygame.display.flip()
             clock.tick(FPS)
+
 
 def Pause():
     screen.fill((255, 255, 255))
@@ -307,6 +311,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self, keys):
+        global is_cancel
         # global MISSON_ACTIVE
         global HP
         if keys[pygame.K_LEFT] == 1:
@@ -349,6 +354,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
             print('activated!')
             cheat()
+        if not pygame.sprite.spritecollideany(self, startMisTrig_group) and is_cancel and not MISSON_ACTIVE:
+            is_cancel = False
+
 
 
 class Menu:
