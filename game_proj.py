@@ -1,7 +1,6 @@
 import pygame
 import os
 import sys
-import time
 
 FPS = 60
 pygame.init()
@@ -22,6 +21,7 @@ key = 0
 #         return False
 #     return True
 
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     image = pygame.image.load(fullname).convert()
@@ -38,6 +38,7 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+
 def saveGame():
     global EXP, SPEED_UP, MOVE_SPEED, HP
     save = open("data/save.txt", "w")
@@ -46,6 +47,7 @@ def saveGame():
     save.write(str(int(MOVE_SPEED)) + "\n")
     save.write(str(int(HP)))
     save.close()
+
 
 def loadGame():
     global EXP, SPEED_UP, MOVE_SPEED, HP
@@ -57,12 +59,14 @@ def loadGame():
     HP = int(read[3])
     save.close()
 
+
 def new_game():
     global EXP, SPEED_UP, MOVE_SPEED, HP
     EXP = 0
     SPEED_UP = 1
     MOVE_SPEED = 10
     HP = 100
+
 
 def start_screen():
     screen.fill((255, 255, 255))
@@ -85,6 +89,7 @@ def start_screen():
         print(mp)
         pygame.display.flip()
         clock.tick(FPS)
+
 
 def Mission():
     global is_cancel
@@ -112,6 +117,7 @@ def Mission():
                 print(mp)
                 pygame.display.flip()
                 clock.tick(FPS)
+
 
 def endMission():
     global MISSON_ACTIVE
@@ -156,6 +162,7 @@ def Pause():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 def load_level(filename):
     filename = "data/" + filename
     with open(filename, 'r') as mapFile:
@@ -163,17 +170,20 @@ def load_level(filename):
     max_width = max(map(len, level_map))
     return list(map(lambda x: x.ljust(max_width, '#'), level_map))
 
+
 def experience():
     global EXP
     font = pygame.font.Font(None, 40)
     exp_render = font.render('Exp: ' + str(EXP), 1, (100, 255, 0))
     screen.blit(exp_render, (20, 20))
 
+
 def health():
     global HP
     font = pygame.font.Font(None, 40)
     hp_render = font.render('HP: ' + str(HP), 1, (100, 255, 0))
     screen.blit(hp_render, (20, 50))
+
 
 def DeadScreen():
     font = pygame.font.Font(None, 40)
@@ -188,6 +198,7 @@ def DeadScreen():
                 return True
         screen.blit(text_render, (text_x, text_y))
         pygame.display.flip()
+
 
 def upgrades():
     global EXP
@@ -224,6 +235,7 @@ def upgrades():
         pygame.display.flip()
         clock.tick(FPS)
 
+
 def cheat():
     global EXP, HP
     EXP += 500
@@ -240,6 +252,7 @@ def cheat():
 
 player = None
 
+heal_group = pygame.sprite.Group
 all_sprites = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
@@ -248,6 +261,7 @@ damage_group = pygame.sprite.Group()
 startMisTrig_group = pygame.sprite.Group()
 endMisTrig_group = pygame.sprite.Group()
 player_group = pygame.sprite.Group()
+
 
 def generate_level(level):
     new_player, x, y = None, None, None
@@ -273,6 +287,7 @@ def generate_level(level):
 
 floor_images = {'floor': load_image('floor.png'), 'lava' : load_image('lava.png')}
 door_images = {'door': load_image('Door.png')}
+heal_image = {'heal': load_image('heart.png')}
 startMisTrig_images = {'start_mission_trigger': load_image('trigger.png')}
 endMisTrig_images = {'end_mission_trigger': load_image('trigger2.png')}
 walls_images = {'wall': load_image('box.png')}
@@ -397,7 +412,6 @@ class Player(pygame.sprite.Sprite):
             is_cancel = False
 
 
-
 class Menu:
     pass
 
@@ -414,6 +428,7 @@ class Camera:
     def update(self, target):
         self.dx = -(target.rect.x + target.rect.w // 2 - WIDTH // 2)
         self.dy = -(target.rect.y + target.rect.h // 2 - HEIGHT // 2)
+
 
 running = True
 start_screen()
