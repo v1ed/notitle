@@ -282,6 +282,8 @@ def generate_level(level):
                 Floor('lava', x, y)
             elif level[y][x] == 'd':
                 Door('door', x, y)
+            elif level[y][x] == 'h':
+                HealPoint('heal', x, y)
     return new_player, x, y
 
 
@@ -329,6 +331,13 @@ class EndMissionTrigger(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(endMisTrig_group, all_sprites)
         self.image = endMisTrig_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class HealPoint(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(heal_group, all_sprites)
+        self.image = heal_image[tile_type]
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
@@ -386,8 +395,8 @@ class Player(pygame.sprite.Sprite):
             if not Mission():
                 pygame.time.set_timer(pygame.KEYDOWN, 1000)
             Mission()
-        print(key)
-        print(self.open)
+        if pygame.sprite.spritecollideany(self, heal_group):
+            HP += 50
         if self.open and not pygame.sprite.spritecollideany(self, door_group) and key >= 1:
             key = key - 1 # ключи должны отниматься, но они не работают, прибавляютя они в конце миссии
             self.open = False
