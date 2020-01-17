@@ -15,6 +15,8 @@ HP = 100
 EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
+is_cancel = False
+key = 0
 LEVEL_NUMBER = 0
 MISSION_NUMBER = 0
 
@@ -65,7 +67,7 @@ def loadGame():
     save.close()
 
 def new_game():
-    global EXP, SPEED_UP, MOVE_SPEED, HP, LEVEL_NUMBER, MISSION_NUMBER, player, level_y, level_x
+    global EXP, SPEED_UP, MOVE_SPEED, HP
     EXP = 0
     SPEED_UP = 1
     MOVE_SPEED = 10
@@ -94,14 +96,15 @@ def start_screen():
                 return
             elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 870 and mp[0] <= 1050) and (mp[1] >= 675 and mp[1] <= 710):
                 terminate()
+        print(mp)
         pygame.display.flip()
         clock.tick(FPS)
 
 def Mission():
-    global MISSON_ACTIVE, MISSION_NUMBER, LEVEL_NUMBER
+    global MISSON_ACTIVE, MISSION_NUMBER, LEVEL_NUMBER, is_cancel
     if MISSON_ACTIVE or MISSION_NUMBER > LEVEL_NUMBER:
         return
-    else:
+    elif is_cancel == False:
         screen.fill((255, 255, 255))
         bg = pygame.transform.scale(load_image('mission_start.png'), (WIDTH, HEIGHT))
         screen.blit(bg, (0, 0))
@@ -117,13 +120,16 @@ def Mission():
                         MISSION_NUMBER += 1
                         return
                     elif (mp[0] >= 1255 and mp[0] <= 1575) and (mp[1] >= 960 and mp[1] <= 1030):
+                        is_cancel = True
                         return False
             pygame.display.flip()
             clock.tick(FPS)
 
+
 def endMission():
     global MISSON_ACTIVE, MISSION_NUMBER
     global EXP
+    global key
     if not MISSON_ACTIVE:
         return
     else:
@@ -138,9 +144,11 @@ def endMission():
                 elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 720 and mp[0] <= 1200) and (mp[1] >= 810 and mp[1] <= 880):
                     print('Mission completed')
                     EXP += 100
+                    key += 1
                     MISSON_ACTIVE = False
                     MISSION_NUMBER += 1
                     return
+                print(mp)
             pygame.display.flip()
             clock.tick(FPS)
 
@@ -255,9 +263,11 @@ def clearLevel():
 
 player = None
 
+heal_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
+door_group = pygame.sprite.Group()
 damage_group = pygame.sprite.Group()
 level_group = pygame.sprite.Group()
 startMisTrig_group = pygame.sprite.Group()
@@ -281,11 +291,15 @@ def generate_level(level):
                 Trigger('end_mission_trigger', x, y)
             elif level[y][x] == 'x':
                 Floor('lava', x, y)
-            elif level[y][x] == 'o':
-                Trigger('level_load_trigger', x, y)
+            elif level[y][x] == 'd':
+                Door('door', x, y)
+            elif level[y][x] == 'h':
+                HealPoint('heal', x, y)
     return new_player, x, y
 
 floor_images = {'floor': load_image('floor.png'), 'lava' : load_image('lava.png')}
+door_images = {'door': load_image('Door.png')}
+heal_image = {'heal': load_image('heart.png')}
 startMisTrig_images = {'start_mission_trigger': load_image('trigger.png')}
 endMisTrig_images = {'end_mission_trigger': load_image('trigger2.png')}
 levelTrig_images = {'level_load_trigger': load_image('level_trig.png')}
@@ -331,6 +345,24 @@ class Trigger(pygame.sprite.Sprite):
             self.image = levelTrig_images[tile_type]
             self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                    tile_height * pos_y)
+        super().__init__(startMisTrig_group, all_sprites)
+        self.image = startMisTrig_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class HealPoint(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(heal_group, all_sprites)
+        self.image = heal_image[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
+
+class Door(pygame.sprite.Sprite):
+    def __init__(self, tile_type, pos_x, pos_y):
+        super().__init__(door_group, all_sprites)
+        self.image = door_images[tile_type]
+        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
@@ -339,32 +371,51 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x + 15, tile_height * pos_y + 5)
 
     def update(self, keys):
+        global is_cancel
+        global key
         # global MISSON_ACTIVE
         global HP, player, level_x, level_y
+        self.open = False
         if keys[pygame.K_LEFT] == 1:
             self.rect.x -= MOVE_SPEED
             self.image = player_left
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.x += MOVE_SPEED
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if keys[pygame.K_RIGHT] == 1:
             self.rect.x += MOVE_SPEED
             self.image = player_right
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.x -= MOVE_SPEED
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if keys[pygame.K_DOWN] == 1:
             self.rect.y += MOVE_SPEED
             self.image = player_forward
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.y -= MOVE_SPEED
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if keys[pygame.K_UP] == 1:
             self.rect.y -= MOVE_SPEED
             self.image = player_backward
-            if pygame.sprite.spritecollideany(self, walls_group):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.y += MOVE_SPEED
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if pygame.sprite.spritecollideany(self, startMisTrig_group) and not MISSON_ACTIVE:
             if not Mission():
                 pygame.time.set_timer(pygame.KEYDOWN, 1000)
             Mission()
+        if pygame.sprite.spritecollideany(self, heal_group):
+            HP += 5
+            if HP > 100:
+                HP = 100
+        if self.open and not pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+            key = key - 1 # ключи должны отниматься, но они не работают, прибавляютя они в конце миссии
+            self.open = False
+            return
         if pygame.sprite.spritecollideany(self, endMisTrig_group) and MISSON_ACTIVE:
             endMission()
         if keys[pygame.K_ESCAPE] == 1:
@@ -374,6 +425,7 @@ class Player(pygame.sprite.Sprite):
                 upgrades()
         if pygame.sprite.spritecollideany(self, damage_group):
             HP -= 1
+            # pygame.time.set_timer(pygame.sprite.spritecollideany(self, damage_group), 1000)
             if HP <= 0:
                 if DeadScreen():
                     start_screen()
@@ -387,10 +439,8 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
             print('activated!')
             cheat()
-
-
-class Menu:
-    pass
+        if not pygame.sprite.spritecollideany(self, startMisTrig_group) and is_cancel and not MISSON_ACTIVE:
+            is_cancel = False
 
 
 class Camera:
@@ -408,7 +458,7 @@ class Camera:
 
 running = True
 start_screen()
-player, level_x, level_y = generate_level(load_level('testlevel' + str(LEVEL_NUMBER) + '.txt'))
+player, level_x, level_y = generate_level(load_level(str(LEVEL_NUMBER) + 'level.txt'))
 camera = Camera()
 while running:
     for event in pygame.event.get():
