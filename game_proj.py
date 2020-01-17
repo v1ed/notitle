@@ -417,7 +417,7 @@ class Camera:
 
 running = True
 start_screen()
-player, level_x, level_y = generate_level(load_level('testlevel.txt'))
+player, level_x, level_y = generate_level(load_level('2level.txt'))
 camera = Camera()
 while running:
     for event in pygame.event.get():
