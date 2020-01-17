@@ -16,7 +16,7 @@ EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
 is_cancel = False
-missions = 0
+key = 0
 # def wait(secs):
 #     while time.sleep(secs):
 #         return False
@@ -116,7 +116,7 @@ def Mission():
 def endMission():
     global MISSON_ACTIVE
     global EXP
-    global missions
+    global key
     if not MISSON_ACTIVE:
         return
     else:
@@ -131,7 +131,7 @@ def endMission():
                 elif event.type == pygame.MOUSEBUTTONDOWN and (mp[0] >= 720 and mp[0] <= 1200) and (mp[1] >= 810 and mp[1] <= 880):
                     print('Mission completed')
                     EXP += 100
-                    missions += 1
+                    key += 1
                     MISSON_ACTIVE = False
                     return
                 print(mp)
@@ -324,9 +324,7 @@ class Door(pygame.sprite.Sprite):
         self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
     def update(self, tile_type, *args):
-        global missions
-        if missions >= 1:
-            self.image = floor_images[tile_type]
+        self.image = floor_images[tile_type]
 
 
 class Player(pygame.sprite.Sprite):
@@ -337,34 +335,48 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, keys):
         global is_cancel
-        global missions
-        print(missions)
+        global key
         # global MISSON_ACTIVE
         global HP
+        self.open = False
         if keys[pygame.K_LEFT] == 1:
             self.rect.x -= MOVE_SPEED
             self.image = player_left
-            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and missions < 1):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.x += MOVE_SPEED
+            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if keys[pygame.K_RIGHT] == 1:
             self.rect.x += MOVE_SPEED
             self.image = player_right
-            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and missions < 1):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.x -= MOVE_SPEED
+            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if keys[pygame.K_DOWN] == 1:
             self.rect.y += MOVE_SPEED
             self.image = player_forward
-            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and missions < 1):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.y -= MOVE_SPEED
+            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if keys[pygame.K_UP] == 1:
             self.rect.y -= MOVE_SPEED
             self.image = player_backward
-            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and missions < 1):
+            if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.y += MOVE_SPEED
+            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+                self.open = True
         if pygame.sprite.spritecollideany(self, startMisTrig_group) and not MISSON_ACTIVE:
             if not Mission():
                 pygame.time.set_timer(pygame.KEYDOWN, 1000)
             Mission()
+        print(key)
+        print(self.open)
+        if  self.open and not pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+            key = key - 1 # ключи должны отниматься, но они не работают, прибавляютя они в конце миссии
+            self.open = False
+            return
         if pygame.sprite.spritecollideany(self, endMisTrig_group) and MISSON_ACTIVE:
             endMission()
         if keys[pygame.K_ESCAPE] == 1:
