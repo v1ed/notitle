@@ -51,7 +51,7 @@ def saveGame():
     save.close()
 
 def loadGame():
-    global EXP, SPEED_UP, MOVE_SPEED, HP, LEVEL_NUMBER, MISSION_NUMBER
+    global EXP, SPEED_UP, MOVE_SPEED, HP, LEVEL_NUMBER, MISSION_NUMBER, player, level_y, level_x
     save = open("data/save.txt", "r")
     read = str(save.read()).split('\n')
     EXP = int(read[0])
@@ -60,16 +60,21 @@ def loadGame():
     HP = int(read[3])
     LEVEL_NUMBER = int(read[4])
     MISSION_NUMBER = int(read[5])
+    clearLevel()
+    player, level_x, level_y = generate_level(load_level('testlevel' + str(LEVEL_NUMBER) + '.txt'))
     save.close()
 
 def new_game():
-    global EXP, SPEED_UP, MOVE_SPEED, HP
+    global EXP, SPEED_UP, MOVE_SPEED, HP, LEVEL_NUMBER, MISSION_NUMBER, player, level_y, level_x
     EXP = 0
     SPEED_UP = 1
     MOVE_SPEED = 10
     HP = 100
     LEVEL_NUMBER = 0
     MISSION_NUMBER = 0
+    clearLevel()
+    player, level_x, level_y = generate_level(
+    load_level('testlevel' + str(LEVEL_NUMBER) + '.txt'))
 
 def start_screen():
     screen.fill((255, 255, 255))
@@ -335,7 +340,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self, keys):
         # global MISSON_ACTIVE
-        global HP
+        global HP, player, level_x, level_y
         if keys[pygame.K_LEFT] == 1:
             self.rect.x -= MOVE_SPEED
             self.image = player_left
