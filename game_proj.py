@@ -344,28 +344,28 @@ class Player(pygame.sprite.Sprite):
             self.image = player_left
             if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.x += MOVE_SPEED
-            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
                 self.open = True
         if keys[pygame.K_RIGHT] == 1:
             self.rect.x += MOVE_SPEED
             self.image = player_right
             if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.x -= MOVE_SPEED
-            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
                 self.open = True
         if keys[pygame.K_DOWN] == 1:
             self.rect.y += MOVE_SPEED
             self.image = player_forward
             if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.y -= MOVE_SPEED
-            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
                 self.open = True
         if keys[pygame.K_UP] == 1:
             self.rect.y -= MOVE_SPEED
             self.image = player_backward
             if pygame.sprite.spritecollideany(self, walls_group) or (pygame.sprite.spritecollideany(self, door_group) and key < 1):
                 self.rect.y += MOVE_SPEED
-            elif pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+            if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
                 self.open = True
         if pygame.sprite.spritecollideany(self, startMisTrig_group) and not MISSON_ACTIVE:
             if not Mission():
@@ -373,7 +373,7 @@ class Player(pygame.sprite.Sprite):
             Mission()
         print(key)
         print(self.open)
-        if  self.open and not pygame.sprite.spritecollideany(self, door_group) and key >= 1:
+        if self.open and not pygame.sprite.spritecollideany(self, door_group) and key >= 1:
             key = key - 1 # ключи должны отниматься, но они не работают, прибавляютя они в конце миссии
             self.open = False
             return
