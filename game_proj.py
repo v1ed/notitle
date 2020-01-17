@@ -63,7 +63,7 @@ def loadGame():
     LEVEL_NUMBER = int(read[4])
     MISSION_NUMBER = int(read[5])
     clearLevel()
-    player, level_x, level_y = generate_level(load_level('testlevel' + str(LEVEL_NUMBER) + '.txt'))
+    player, level_x, level_y = generate_level(load_level(str(LEVEL_NUMBER) + 'level.txt'))
     save.close()
 
 def new_game():
@@ -75,8 +75,7 @@ def new_game():
     LEVEL_NUMBER = 0
     MISSION_NUMBER = 0
     clearLevel()
-    player, level_x, level_y = generate_level(
-    load_level('testlevel' + str(LEVEL_NUMBER) + '.txt'))
+    player, level_x, level_y = generate_level(load_level(str(LEVEL_NUMBER) + 'level.txt'))
 
 def start_screen():
     screen.fill((255, 255, 255))
@@ -102,9 +101,9 @@ def start_screen():
 
 def Mission():
     global MISSON_ACTIVE, MISSION_NUMBER, LEVEL_NUMBER, is_cancel
-    if MISSON_ACTIVE or MISSION_NUMBER > LEVEL_NUMBER:
+    if MISSON_ACTIVE or is_cancel == True:
         return
-    elif is_cancel == False:
+    else:
         screen.fill((255, 255, 255))
         bg = pygame.transform.scale(load_image('mission_start.png'), (WIDTH, HEIGHT))
         screen.blit(bg, (0, 0))
@@ -289,6 +288,8 @@ def generate_level(level):
                 Trigger('start_mission_trigger', x, y)
             elif level[y][x] == '-':
                 Trigger('end_mission_trigger', x, y)
+            elif level[y][x] == 'o':
+                Trigger('level_load_trigger', x, y)
             elif level[y][x] == 'x':
                 Floor('lava', x, y)
             elif level[y][x] == 'd':
@@ -299,7 +300,7 @@ def generate_level(level):
 
 floor_images = {'floor': load_image('floor.png'), 'lava' : load_image('lava.png')}
 door_images = {'door': load_image('Door.png')}
-heal_image = {'heal': load_image('heart.png')}
+heal_image = {'heal': load_image('heal.png')}
 startMisTrig_images = {'start_mission_trigger': load_image('trigger.png')}
 endMisTrig_images = {'end_mission_trigger': load_image('trigger2.png')}
 levelTrig_images = {'level_load_trigger': load_image('level_trig.png')}
@@ -345,9 +346,6 @@ class Trigger(pygame.sprite.Sprite):
             self.image = levelTrig_images[tile_type]
             self.rect = self.image.get_rect().move(tile_width * pos_x,
                                                    tile_height * pos_y)
-        super().__init__(startMisTrig_group, all_sprites)
-        self.image = startMisTrig_images[tile_type]
-        self.rect = self.image.get_rect().move(tile_width * pos_x, tile_height * pos_y)
 
 
 class HealPoint(pygame.sprite.Sprite):
@@ -405,8 +403,6 @@ class Player(pygame.sprite.Sprite):
             if pygame.sprite.spritecollideany(self, door_group) and key >= 1:
                 self.open = True
         if pygame.sprite.spritecollideany(self, startMisTrig_group) and not MISSON_ACTIVE:
-            if not Mission():
-                pygame.time.set_timer(pygame.KEYDOWN, 1000)
             Mission()
         if pygame.sprite.spritecollideany(self, heal_group):
             HP += 5
@@ -431,10 +427,10 @@ class Player(pygame.sprite.Sprite):
                     start_screen()
         if pygame.sprite.spritecollideany(self, level_group):
             global player, level_x, level_y, LEVEL_NUMBER
-            if LEVEL_NUMBER <= MISSION_NUMBER and MISSION_NUMBER != 0:
+            if LEVEL_NUMBER < MISSION_NUMBER and MISSION_NUMBER != 0:
                 clearLevel()
-                LEVEL_NUMBER = (LEVEL_NUMBER + 1) % MISSION_NUMBER
-                player, level_x, level_y = generate_level(load_level('testlevel' + str(LEVEL_NUMBER) +'.txt'))
+                LEVEL_NUMBER = (LEVEL_NUMBER + 1) % 4
+                player, level_x, level_y = generate_level(load_level(str(LEVEL_NUMBER) + 'level.txt'))
                 print(LEVEL_NUMBER)
         if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
             print('activated!')
