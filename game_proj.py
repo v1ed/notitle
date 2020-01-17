@@ -16,7 +16,7 @@ EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
 LEVEL_NUMBER = 0
-MISSION_NUMBER = 1
+MISSION_NUMBER = 0
 
 # def wait(secs):
 #     while time.sleep(secs):
@@ -40,22 +40,26 @@ def terminate():
     sys.exit()
 
 def saveGame():
-    global EXP, SPEED_UP, MOVE_SPEED, HP
+    global EXP, SPEED_UP, MOVE_SPEED, HP, LEVEL_NUMBER, MISSION_NUMBER
     save = open("data/save.txt", "w")
     save.write(str(int(EXP)) + "\n")
     save.write(str(int(SPEED_UP)) + "\n")
     save.write(str(int(MOVE_SPEED)) + "\n")
-    save.write(str(int(HP)))
+    save.write(str(int(HP)) + "\n")
+    save.write(str(int(LEVEL_NUMBER)) + "\n")
+    save.write(str(int(LEVEL_NUMBER)))
     save.close()
 
 def loadGame():
-    global EXP, SPEED_UP, MOVE_SPEED, HP
+    global EXP, SPEED_UP, MOVE_SPEED, HP, LEVEL_NUMBER, MISSION_NUMBER
     save = open("data/save.txt", "r")
     read = str(save.read()).split('\n')
     EXP = int(read[0])
     SPEED_UP = int(read[1])
     MOVE_SPEED = int(read[2])
     HP = int(read[3])
+    LEVEL_NUMBER = int(read[4])
+    MISSION_NUMBER = int(read[5])
     save.close()
 
 def new_game():
@@ -64,6 +68,8 @@ def new_game():
     SPEED_UP = 1
     MOVE_SPEED = 10
     HP = 100
+    LEVEL_NUMBER = 0
+    MISSION_NUMBER = 0
 
 def start_screen():
     screen.fill((255, 255, 255))
@@ -88,7 +94,7 @@ def start_screen():
 
 def Mission():
     global MISSON_ACTIVE, MISSION_NUMBER, LEVEL_NUMBER
-    if MISSON_ACTIVE or MISSION_NUMBER != LEVEL_NUMBER:
+    if MISSON_ACTIVE or MISSION_NUMBER > LEVEL_NUMBER:
         return
     else:
         screen.fill((255, 255, 255))
@@ -111,7 +117,7 @@ def Mission():
             clock.tick(FPS)
 
 def endMission():
-    global MISSON_ACTIVE
+    global MISSON_ACTIVE, MISSION_NUMBER
     global EXP
     if not MISSON_ACTIVE:
         return
@@ -128,6 +134,7 @@ def endMission():
                     print('Mission completed')
                     EXP += 100
                     MISSON_ACTIVE = False
+                    MISSION_NUMBER += 1
                     return
             pygame.display.flip()
             clock.tick(FPS)
@@ -367,12 +374,11 @@ class Player(pygame.sprite.Sprite):
                     start_screen()
         if pygame.sprite.spritecollideany(self, level_group):
             global player, level_x, level_y, LEVEL_NUMBER
-            clearLevel()
-            # if LEVEL_NUMBER <= MISSION_NUMBER:
-            clearLevel()
-            player, level_x, level_y = generate_level(load_level('testlevel' + str((LEVEL_NUMBER + 1) % 4) +'.txt'))
-            LEVEL_NUMBER = (LEVEL_NUMBER + 1) % 4
-
+            if LEVEL_NUMBER <= MISSION_NUMBER and MISSION_NUMBER != 0:
+                clearLevel()
+                LEVEL_NUMBER = (LEVEL_NUMBER + 1) % MISSION_NUMBER
+                player, level_x, level_y = generate_level(load_level('testlevel' + str(LEVEL_NUMBER) +'.txt'))
+                print(LEVEL_NUMBER)
         if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
             print('activated!')
             cheat()
@@ -397,7 +403,7 @@ class Camera:
 
 running = True
 start_screen()
-player, level_x, level_y = generate_level(load_level('testlevel0.txt'))
+player, level_x, level_y = generate_level(load_level('testlevel' + str(LEVEL_NUMBER) + '.txt'))
 camera = Camera()
 while running:
     for event in pygame.event.get():
