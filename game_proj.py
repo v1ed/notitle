@@ -252,7 +252,7 @@ def cheat():
 
 player = None
 
-heal_group = pygame.sprite.Group
+heal_group = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 walls_group = pygame.sprite.Group()
 floor_group = pygame.sprite.Group()
@@ -396,7 +396,9 @@ class Player(pygame.sprite.Sprite):
                 pygame.time.set_timer(pygame.KEYDOWN, 1000)
             Mission()
         if pygame.sprite.spritecollideany(self, heal_group):
-            HP += 50
+            HP += 5
+            if HP > 100:
+                HP = 100
         if self.open and not pygame.sprite.spritecollideany(self, door_group) and key >= 1:
             key = key - 1 # ключи должны отниматься, но они не работают, прибавляютя они в конце миссии
             self.open = False
