@@ -15,7 +15,7 @@ HP = 100
 EXP = 0
 SPEED_UP = 1
 pygame.key.set_repeat(1, 50)
-LEVEL_NUMBER = 1
+LEVEL_NUMBER = 0
 MISSION_NUMBER = 1
 
 # def wait(secs):
@@ -368,12 +368,10 @@ class Player(pygame.sprite.Sprite):
         if pygame.sprite.spritecollideany(self, level_group):
             global player, level_x, level_y, LEVEL_NUMBER
             clearLevel()
-            if LEVEL_NUMBER == 1:
-                player, level_x, level_y = generate_level(load_level('testlevel2.txt'))
-                LEVEL_NUMBER = 2
-            elif LEVEL_NUMBER == 2:
-                player, level_x, level_y = generate_level(load_level('testlevel.txt'))
-                LEVEL_NUMBER = 1
+            # if LEVEL_NUMBER <= MISSION_NUMBER:
+            clearLevel()
+            player, level_x, level_y = generate_level(load_level('testlevel' + str((LEVEL_NUMBER + 1) % 4) +'.txt'))
+            LEVEL_NUMBER = (LEVEL_NUMBER + 1) % 4
 
         if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
             print('activated!')
@@ -399,7 +397,7 @@ class Camera:
 
 running = True
 start_screen()
-player, level_x, level_y = generate_level(load_level('testlevel.txt'))
+player, level_x, level_y = generate_level(load_level('testlevel0.txt'))
 camera = Camera()
 while running:
     for event in pygame.event.get():
