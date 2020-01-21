@@ -429,7 +429,7 @@ class Player(pygame.sprite.Sprite):
             global player, level_x, level_y, LEVEL_NUMBER
             if LEVEL_NUMBER < MISSION_NUMBER and MISSION_NUMBER != 0:
                 clearLevel()
-                LEVEL_NUMBER = (LEVEL_NUMBER + 1) % 4
+                LEVEL_NUMBER = (LEVEL_NUMBER + 1) % 3
                 player, level_x, level_y = generate_level(load_level(str(LEVEL_NUMBER) + 'level.txt'))
                 print(LEVEL_NUMBER)
         if keys[pygame.K_b] == 1 and keys[pygame.K_a] == 1 and keys[pygame.K_d] == 1:
